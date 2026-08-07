@@ -1,0 +1,23 @@
+# 依存関係
+node_modules/
+
+# ビルド成果物（npm run build で再生成できる）
+dist/
+
+# エディタ・OS
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# ログ
+npm-debug.log*
+yarn-error.log*
+*.log
+
+# Python バイトコード
+__pycache__/
+*.pyc
+
+# Claude Code のローカル設定（マシン固有。launch.json は共有する）
+.claude/settings.local.json

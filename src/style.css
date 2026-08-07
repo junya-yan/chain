@@ -1,0 +1,361 @@
+:root {
+  --ink: #f4e9d0;
+  --ink-dim: #a99b80;
+  --frame: #2a1b3d;
+  --frame-lit: #4b3168;
+  --gold: #ffcc44;
+  --gold-deep: #b8801c;
+  --danger: #e8674a;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* display:flex を指定した要素にも hidden 属性を効かせる。 */
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #120a1c;
+  color: var(--ink);
+  font-family: 'Trebuchet MS', 'Hiragino Maru Gothic ProN', 'Yu Gothic', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- 汎用ボタン ------------------------------------------------------- */
+
+button {
+  font: inherit;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--frame-lit), var(--frame));
+  border: 2px solid #6d4a94;
+  border-radius: 8px;
+  padding: 0.5em 1.1em;
+  cursor: pointer;
+  transition: transform 0.08s ease, filter 0.12s ease;
+  touch-action: manipulation;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(1.25);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+button.primary {
+  background: linear-gradient(180deg, #ffd968, var(--gold-deep));
+  border-color: #ffe89a;
+  color: #3a2408;
+  font-weight: bold;
+}
+
+/* --- タイトル / ステージ選択 ------------------------------------------ */
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2rem 1rem;
+  overflow-y: auto;
+  background:
+    radial-gradient(ellipse at 50% 20%, #3d1f5c 0%, #1a0e28 55%, #0d0715 100%);
+}
+
+.logo {
+  font-size: clamp(2.6rem, 9vw, 5rem);
+  letter-spacing: 0.18em;
+  font-weight: 900;
+  margin: 0;
+  color: var(--gold);
+  text-shadow:
+    0 2px 0 var(--gold-deep),
+    0 5px 0 #6b4708,
+    0 10px 24px rgba(0, 0, 0, 0.7);
+}
+
+.tagline {
+  margin: -0.6rem 0 0.4rem;
+  color: var(--ink-dim);
+  letter-spacing: 0.12em;
+  font-size: 0.95rem;
+}
+
+.stage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 0.9rem;
+  width: min(760px, 100%);
+}
+
+.stage-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  align-items: flex-start;
+  text-align: left;
+  padding: 0.75rem 0.9rem;
+  min-height: 92px;
+}
+
+.stage-card .no {
+  font-size: 0.72rem;
+  color: var(--ink-dim);
+  letter-spacing: 0.14em;
+}
+
+.stage-card .title {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.stage-card .record {
+  font-size: 0.75rem;
+  color: var(--gold);
+}
+
+.stage-card.cleared {
+  border-color: var(--gold-deep);
+}
+
+.stage-card .check {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.6rem;
+  color: var(--gold);
+  font-size: 1.1rem;
+}
+
+/* --- ゲーム画面 -------------------------------------------------------- */
+
+.game {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: #0d0715;
+}
+
+.stage-view {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  touch-action: none;
+}
+
+.stage-view canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* --- 下部バー（パレット） ---------------------------------------------- */
+
+.hud {
+  display: flex;
+  align-items: stretch;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  background: linear-gradient(180deg, #241536, #160c22);
+  border-top: 2px solid #4b3168;
+  flex-wrap: wrap;
+}
+
+.hud-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  justify-content: center;
+}
+
+.hud-side button {
+  padding: 0.35em 0.8em;
+  font-size: 0.82rem;
+}
+
+.palette {
+  flex: 1;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.4rem 0.6rem;
+  min-height: 74px;
+  overflow-x: auto;
+  background: rgba(0, 0, 0, 0.35);
+  border: 2px solid #4b3168;
+  border-radius: 10px;
+}
+
+.slot {
+  position: relative;
+  flex: 0 0 auto;
+  width: 62px;
+  height: 62px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #3b2757, #241537);
+}
+
+.slot canvas {
+  width: 46px;
+  height: 46px;
+}
+
+.slot .count {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 0.72rem;
+  font-weight: bold;
+  color: var(--gold);
+  text-shadow: 0 1px 2px #000;
+}
+
+.slot.selected {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(255, 204, 68, 0.35), 0 0 16px rgba(255, 204, 68, 0.3);
+}
+
+.slot.empty {
+  opacity: 0.35;
+}
+
+.run-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  justify-content: center;
+}
+
+.speeds {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.speeds button {
+  padding: 0.25em 0.5em;
+  font-size: 0.75rem;
+  min-width: 34px;
+}
+
+.speeds button.on {
+  background: linear-gradient(180deg, #ffd968, var(--gold-deep));
+  color: #3a2408;
+  border-color: #ffe89a;
+}
+
+/* --- オーバーレイ ------------------------------------------------------ */
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+  background: rgba(10, 5, 18, 0.82);
+  backdrop-filter: blur(3px);
+  z-index: 5;
+}
+
+.overlay h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 6vw, 3rem);
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  text-shadow: 0 3px 0 var(--gold-deep), 0 8px 20px rgba(0, 0, 0, 0.6);
+}
+
+.overlay p {
+  margin: 0;
+  max-width: 34ch;
+  line-height: 1.7;
+}
+
+.overlay .row {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  padding: 0.5em 1.1em;
+  border-radius: 999px;
+  background: rgba(20, 10, 32, 0.9);
+  border: 1px solid #6d4a94;
+  font-size: 0.85rem;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.status-line {
+  position: absolute;
+  top: 0.7rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1.2rem;
+  padding: 0.4em 1.1em;
+  border-radius: 999px;
+  background: rgba(20, 10, 32, 0.72);
+  border: 1px solid rgba(109, 74, 148, 0.7);
+  font-size: 0.82rem;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 3;
+}
+
+.status-line .k {
+  color: var(--ink-dim);
+}
+
+@media (max-width: 620px) {
+  .hud {
+    gap: 0.4rem;
+    padding: 0.45rem;
+  }
+  .slot {
+    width: 54px;
+    height: 54px;
+  }
+  .slot canvas {
+    width: 40px;
+    height: 40px;
+  }
+}

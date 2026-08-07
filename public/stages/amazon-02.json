@@ -1,0 +1,41 @@
+{
+  "id": "amazon-02",
+  "name": "よじのぼる",
+  "biome": "amazon",
+  "brief": "王冠は高い岩の上。ライオンは跳べないが、ロープがあれば登れる。",
+  "mission": { "type": "reach_goal", "target": "lion" },
+  "protect": ["lion"],
+  "world": {
+    "gravity": 1400,
+    "wind": 0,
+    "bounds": { "w": 800, "h": 600 },
+    "timeLimit": 45
+  },
+  "terrain": [
+    { "material": "rock", "x": 400, "y": 480, "hw": 420, "hh": 90 },
+    { "material": "rock", "x": 80, "y": 250, "hw": 110, "hh": 60 },
+    { "material": "wood", "x": 250, "y": 150, "hw": 90, "hh": 8 }
+  ],
+  "actors": [{ "type": "lion", "x": 700, "y": 375, "dir": -1 }],
+  "props": [
+    { "type": "goal", "id": "crown", "x": 70, "y": 162, "hw": 24, "hh": 28 },
+    { "type": "anchor", "id": "branch", "x": 200, "y": 162 },
+    { "type": "anchor", "id": "ground", "x": 200, "y": 382 }
+  ],
+  "inventory": [{ "item": "rope", "count": 1 }],
+  "par": 1,
+  "hints": [
+    "ライオンは段差を登れない。縦に移動する手段がいる。",
+    "枝の輪と地面の杭。この2点を結べば道になる。"
+  ],
+  "solution": [
+    {
+      "id": "p0",
+      "item": "rope",
+      "x": 0,
+      "y": 0,
+      "from": { "target": "branch" },
+      "to": { "target": "ground" }
+    }
+  ]
+}

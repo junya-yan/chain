@@ -1,0 +1,80 @@
+{
+  "lion": {
+    "src": "test-lion.example.png",
+    "anchor": [128, 232],
+    "scale": 0.24,
+    "strideLength": 34,
+    "parts": [
+      {
+        "name": "tail",
+        "rect": [84, 132, 34, 16],
+        "pivot": [118, 140],
+        "z": 0,
+        "anim": {
+          "walk": { "swing": 0.22, "phase": 0.25 },
+          "climb": { "swing": 0.3, "phase": 0 }
+        }
+      },
+      {
+        "name": "armBack",
+        "rect": [122, 128, 14, 50],
+        "pivot": [129, 133],
+        "z": 1,
+        "anim": {
+          "walk": { "swing": 0.55, "phase": 0.5 },
+          "climb": { "swing": 0.5, "phase": 0.5 }
+        }
+      },
+      {
+        "name": "legBack",
+        "rect": [116, 176, 16, 56],
+        "pivot": [124, 181],
+        "z": 2,
+        "anim": {
+          "walk": { "swing": 0.6, "phase": 0.5 },
+          "climb": { "swing": 0.35, "phase": 0.5 }
+        }
+      },
+      {
+        "name": "torso",
+        "rect": [106, 118, 44, 62],
+        "pivot": [128, 178],
+        "z": 3,
+        "anim": {
+          "walk": { "swing": 0.04, "phase": 0, "lift": -2.5 },
+          "climb": { "swing": 0, "phase": 0, "lift": -2 }
+        }
+      },
+      {
+        "name": "legFront",
+        "rect": [118, 176, 16, 56],
+        "pivot": [126, 181],
+        "z": 4,
+        "anim": {
+          "walk": { "swing": 0.6, "phase": 0 },
+          "climb": { "swing": 0.35, "phase": 0 }
+        }
+      },
+      {
+        "name": "armFront",
+        "rect": [126, 128, 14, 50],
+        "pivot": [133, 133],
+        "z": 5,
+        "anim": {
+          "walk": { "swing": 0.55, "phase": 0 },
+          "climb": { "swing": 0.5, "phase": 0 }
+        }
+      },
+      {
+        "name": "head",
+        "rect": [100, 74, 56, 46],
+        "pivot": [128, 118],
+        "z": 6,
+        "anim": {
+          "walk": { "swing": 0.06, "phase": 0, "lift": -2.5 },
+          "climb": { "swing": 0.05, "phase": 0, "lift": -2 }
+        }
+      }
+    ]
+  }
+}

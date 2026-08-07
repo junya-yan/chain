@@ -1,0 +1,43 @@
+{
+  "id": "amazon-04",
+  "name": "導火線",
+  "biome": "amazon",
+  "brief": "焚き火は消せない。だが、火は運べる。木の鳥を全部飛び立たせろ。",
+  "mission": { "type": "clear_all", "target": "bird" },
+  "world": {
+    "gravity": 1400,
+    "wind": 0,
+    "bounds": { "w": 800, "h": 600 },
+    "timeLimit": 45
+  },
+  "terrain": [
+    { "material": "rock", "x": 400, "y": 545, "hw": 420, "hh": 55 },
+    { "material": "wood", "x": 560, "y": 250, "hw": 130, "hh": 9 }
+  ],
+  "actors": [
+    { "type": "bird", "x": 505, "y": 228, "variant": "macaw" },
+    { "type": "bird", "x": 560, "y": 228, "variant": "macaw" },
+    { "type": "bird", "x": 615, "y": 228, "variant": "macaw" }
+  ],
+  "props": [{ "type": "campfire", "id": "fire", "x": 250, "y": 478 }],
+  "inventory": [
+    { "item": "bomb", "count": 1 },
+    { "item": "rope", "count": 1 }
+  ],
+  "par": 2,
+  "hints": [
+    "焚き火に届くものは、そこから燃えはじめる。",
+    "爆弾を枝の上に置き、焚き火から線を引く。"
+  ],
+  "solution": [
+    { "id": "p0", "item": "bomb", "x": 560, "y": 230 },
+    {
+      "id": "p1",
+      "item": "rope",
+      "x": 0,
+      "y": 0,
+      "from": { "target": "fire" },
+      "to": { "target": "p0" }
+    }
+  ]
+}

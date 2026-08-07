@@ -1,0 +1,50 @@
+{
+  "id": "amazon-05",
+  "name": "宙に吊るす",
+  "biome": "amazon",
+  "brief": "鳥たちは何も置けない高さにいる。置けないなら、浮かせて届かせろ。",
+  "mission": { "type": "clear_all", "target": "bird" },
+  "world": {
+    "gravity": 1400,
+    "wind": 0,
+    "bounds": { "w": 800, "h": 600 },
+    "timeLimit": 60
+  },
+  "terrain": [{ "material": "rock", "x": 400, "y": 545, "hw": 420, "hh": 55 }],
+  "actors": [
+    { "type": "bird", "x": 240, "y": 138, "variant": "macaw" },
+    { "type": "bird", "x": 285, "y": 150, "variant": "macaw" },
+    { "type": "bird", "x": 330, "y": 162, "variant": "macaw" }
+  ],
+  "props": [{ "type": "campfire", "id": "fire", "x": 285, "y": 478 }],
+  "inventory": [
+    { "item": "bomb", "count": 1 },
+    { "item": "balloon", "count": 1 },
+    { "item": "rope", "count": 2 }
+  ],
+  "par": 4,
+  "hints": [
+    "宙に置いたものは落ちる。落ちないようにするものがいる。",
+    "風船が爆弾を吊り上げ、焚き火からの導火線がその高さを決める。"
+  ],
+  "solution": [
+    { "id": "p0", "item": "bomb", "x": 285, "y": 158 },
+    { "id": "p1", "item": "balloon", "x": 285, "y": 100 },
+    {
+      "id": "p2",
+      "item": "rope",
+      "x": 0,
+      "y": 0,
+      "from": { "target": "p1" },
+      "to": { "target": "p0" }
+    },
+    {
+      "id": "p3",
+      "item": "rope",
+      "x": 0,
+      "y": 0,
+      "from": { "target": "fire" },
+      "to": { "target": "p0" }
+    }
+  ]
+}

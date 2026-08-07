@@ -1,0 +1,24 @@
+{
+  "id": "amazon-01",
+  "name": "谷をわたる",
+  "biome": "amazon",
+  "brief": "ライオンは勝手に歩き出す。板を1枚かけて、王冠まで導け。",
+  "mission": { "type": "reach_goal", "target": "lion" },
+  "protect": ["lion"],
+  "world": {
+    "gravity": 1400,
+    "wind": 0,
+    "bounds": { "w": 800, "h": 600 },
+    "timeLimit": 45
+  },
+  "terrain": [
+    { "material": "rock", "x": 115, "y": 420, "hw": 145, "hh": 120 },
+    { "material": "rock", "x": 555, "y": 420, "hw": 255, "hh": 120 }
+  ],
+  "actors": [{ "type": "lion", "x": 720, "y": 285, "dir": -1 }],
+  "props": [{ "type": "goal", "id": "crown", "x": 70, "y": 272, "hw": 24, "hh": 28 }],
+  "inventory": [{ "item": "platform", "count": 1 }],
+  "par": 1,
+  "hints": ["ライオンは歩き続ける。止められないなら、道を作ってやるしかない。"],
+  "solution": [{ "id": "p0", "item": "platform", "x": 280, "y": 290 }]
+}
