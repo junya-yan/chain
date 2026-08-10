@@ -5,7 +5,7 @@
  * クリアの有無だけでなく最少使用アイテム数を残す。
  */
 
-const KEY = 'puzzling.progress.v1';
+const KEY = 'chain.progress.v1';
 
 export interface StageRecord {
   cleared: boolean;

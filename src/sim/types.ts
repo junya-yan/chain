@@ -35,7 +35,7 @@ export interface TerrainDef {
 
 /** 動物。プレイヤーは操作しない。自律的に動く。 */
 export interface ActorDef {
-  type: 'lion' | 'bird';
+  type: 'tiger' | 'bird';
   x: number;
   y: number;
   /** 歩き出す向き。1 が右、-1 が左。 */

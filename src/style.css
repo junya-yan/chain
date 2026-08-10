@@ -97,6 +97,33 @@ button.primary {
     0 10px 24px rgba(0, 0, 0, 0.7);
 }
 
+/*
+ * ロゴ直下の英語の副題。当時のパッケージ裏の惹句のように、
+ * 細くて字間の広い大文字を罫線で挟む。
+ */
+.superscript {
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+  margin: 0.5rem 0 0.9rem;
+  color: var(--gold-deep);
+  font-size: clamp(0.62rem, 2.1vw, 0.8rem);
+  font-weight: 700;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em; /* 字間ぶん右にずれるのを戻して中央に見せる */
+  white-space: nowrap;
+}
+
+.superscript::before,
+.superscript::after {
+  content: '';
+  /* 親が align-items:center なので要素は内容幅に縮む。伸びしろが無いため
+     flex-grow では 0px に潰れる。縮まない固定幅で引く。 */
+  flex: 0 0 2.4rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-deep), transparent);
+}
+
 .tagline {
   margin: -0.6rem 0 0.4rem;
   color: var(--ink-dim);

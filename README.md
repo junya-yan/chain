@@ -1,6 +1,7 @@
-# PUZZLING
+# CHAIN
 
 ダイソー「ザ・ゲームシリーズ」のパズリングに着想を得た、物理チェーンリアクション・パズル。
+原作の名称・画像・音は使っていない。
 動物は勝手に歩き出す。プレイヤーはアイテムを置いて道を作るだけで、実行中は一切操作しない。
 
 原作の画像・音は流用していない。ビジュアルはすべてコードによる手続き的描画。
@@ -78,11 +79,11 @@ UI 側だけに持つと、検証をすり抜ける穴になる。
   "name": "ステージ名",
   "biome": "amazon",
   "brief": "開始時に出す目標の説明",
-  "mission": { "type": "reach_goal", "target": "lion" },
-  "protect": ["lion"],
+  "mission": { "type": "reach_goal", "target": "tiger" },
+  "protect": ["tiger"],
   "world": { "gravity": 1400, "bounds": { "w": 800, "h": 600 }, "timeLimit": 60 },
   "terrain": [{ "material": "rock", "x": 400, "y": 480, "hw": 420, "hh": 90 }],
-  "actors": [{ "type": "lion", "x": 700, "y": 375, "dir": -1 }],
+  "actors": [{ "type": "tiger", "x": 700, "y": 375, "dir": -1 }],
   "props": [{ "type": "goal", "id": "crown", "x": 70, "y": 272, "hw": 24, "hh": 28 }],
   "inventory": [{ "item": "rope", "count": 1 }],
   "par": 1,
@@ -122,8 +123,8 @@ UI 側だけに持つと、検証をすり抜ける穴になる。
 **GIF は使わないこと。** 歩きのコマは実際の移動距離に同期しており、さらに 2x/4x の
 早送りと一時停止がある。GIF は自前の時計で動くので絵と物理がずれる。透過も 1bit
 なので暗い背景で輪郭が汚くなる。詳細は
-[public/sprites/README.md](public/sprites/README.md)、
-画像生成AIへの指示は [public/sprites/AI-PROMPT.md](public/sprites/AI-PROMPT.md)。
+[docs/sprites.md](docs/sprites.md)、
+画像生成AIへの指示は [docs/ai-prompt.md](docs/ai-prompt.md)。
 
 ### 生成AIの「シート風の絵」から使えるシートを作る
 
@@ -131,15 +132,21 @@ UI 側だけに持つと、検証をすり抜ける穴になる。
 出しがち。`tools/extract-frames.py` はそこから使えるシートを起こす。
 
 ```bash
-python3 tools/extract-frames.py
+python3 tools/extract-frames.py art-source/tiger.png public/sprites/tiger.png
 ```
 
 - 外周からの塗りつぶしで、焼き込まれた背景を抜く（キャラの濃い輪郭線が堰になる）
-- 最大の連結成分だけ残して、地面の岩などの残骸を落とす
+- 靴が接している地面は、セル下端から採った色見本で狙い撃ちして消す
+- 最大の連結成分だけ残して、岩などの残骸を落とす
 - **背丈と足元の高さを全コマで揃える**（生成AIはここが揃わない。揃えないと歩行がガタつく）
 
-現在 `public/sprites/lion.png` はこの手順で作られている。塗りつぶしの許容色差
-（`TOLERANCE`）は 52 が上限で、70 を超えるとキャラの輪郭を突き抜けて中身まで溶ける。
+現在 `public/sprites/tiger.png` はこの手順で作られている（11 コマ）。
+閾値は絵ごとに調整が要る。トラの絵での上限は実測で次のとおり。
+
+| 定数 | 値 | 超えると起きること |
+| --- | --- | --- |
+| `TOLERANCE` | 34 | 40 以上でキャラの輪郭を突き抜け、体が分断される |
+| `GROUND_MATCH` | 10 | 14 以上で靴から削れはじめる |
 
 ## アイテム
 
@@ -173,7 +180,7 @@ python3 tools/extract-frames.py
 
 ## 現状の課題
 
-- `lion.png` は靴の周りに地面の茶色い塊がわずかに残っている。靴が地面に接した
-  状態で描かれているため、キャラと地面が 1 つの連結成分になってしまうのが原因。
-  立ち絵を 1 枚もらってリグ方式に切り替えるのが本筋（`rig.example.json` が雛形）。
-- 元シートの 12 コマは体格と姿勢のドリフトがあり、歩行ループがきれいに閉じない。
+- `tiger.png` は数コマで、しっぽ付近に地面のひび割れが細い線として残っている。
+  立ち絵を 1 枚もらってリグ方式に切り替えるのが本筋
+  （書式は [docs/sprites.md](docs/sprites.md) の rig.json の節）。
+- 元シートのコマは姿勢のドリフトがあり、歩行ループがきれいに閉じない。

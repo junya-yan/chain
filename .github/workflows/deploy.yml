@@ -1,0 +1,52 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Pages への配信に必要な権限。
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 実行中のデプロイは中断せず、後から来たものを 1 つだけ待たせる。
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # ステージが本当にクリア可能かをここでも確かめる。
+      # 壊れたステージを配信しないための最後の関門。
+      - run: npm run verify
+
+      # プロジェクトページは https://<user>.github.io/<repo>/ に置かれるため、
+      # ベースパスを渡す必要がある。リポジトリ名から自動で決める。
+      - run: npm run build -- --base=/${{ github.event.repository.name }}/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

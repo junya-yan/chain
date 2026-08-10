@@ -3,8 +3,8 @@
   "name": "風船をたぐる",
   "biome": "amazon",
   "brief": "風船は浮かぶ。ロープで地面に繋げば、その長さのぶんだけ空にとどまる。",
-  "mission": { "type": "reach_goal", "target": "lion" },
-  "protect": ["lion"],
+  "mission": { "type": "reach_goal", "target": "tiger" },
+  "protect": ["tiger"],
   "world": {
     "gravity": 1400,
     "wind": 0,
@@ -15,7 +15,7 @@
     { "material": "rock", "x": 400, "y": 540, "hw": 420, "hh": 60 },
     { "material": "rock", "x": 98, "y": 180, "hw": 154, "hh": 30 }
   ],
-  "actors": [{ "type": "lion", "x": 700, "y": 465, "dir": -1 }],
+  "actors": [{ "type": "tiger", "x": 700, "y": 465, "dir": -1 }],
   "props": [
     { "type": "goal", "id": "crown", "x": 80, "y": 122, "hw": 24, "hh": 28 },
     { "type": "anchor", "id": "peg", "x": 272, "y": 472 }
@@ -27,7 +27,7 @@
   "par": 2,
   "hints": [
     "風船はロープが張りきるところまでしか上がらない。",
-    "ライオンは登りきった高さから横へ飛び移る。岩の上に届く高さを選ぶ。"
+    "トラは登りきった高さから横へ飛び移る。岩の上に届く高さを選ぶ。"
   ],
   "solution": [
     { "id": "p0", "item": "balloon", "x": 272, "y": 96 },

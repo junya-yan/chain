@@ -1,13 +1,13 @@
 {
-  "lion": {
-    "src": "lion.png",
+  "tiger": {
+    "src": "tiger.png",
     "frameW": 160,
     "frameH": 160,
     "anchorX": 80,
     "anchorY": 146,
     "scale": 0.32,
     "clips": {
-      "walk": { "row": 0, "frames": 12, "perPixels": 3.2 }
+      "walk": { "row": 0, "frames": 11, "perPixels": 3.4 }
     }
   }
 }

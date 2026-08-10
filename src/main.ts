@@ -27,7 +27,8 @@ function showTitle(): void {
   const el = document.createElement('div');
   el.className = 'screen';
   el.innerHTML = `
-    <h1 class="logo">PUZZLING</h1>
+    <h1 class="logo">CHAIN</h1>
+    <p class="superscript">THE CHAIN REACTION GAME</p>
     <p class="tagline">因果を組み立てる物理パズル</p>
     <div class="row">
       <button class="primary" data-act="start">ゲーム開始</button>

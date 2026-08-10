@@ -46,7 +46,7 @@ interface Effect {
 /** キャラクターの輪郭色。濃い輪郭が原作の手描き調の要になっている。 */
 const INK = '#2b1206';
 /** 当たり判定は変えずに、見た目だけ一回り大きくする倍率。 */
-const LION_SCALE = 1.35;
+const TIGER_SCALE = 1.35;
 const BIRD_SCALE = 1.25;
 
 /** 論理座標 (800x600) と画面ピクセルの対応。 */
@@ -683,17 +683,17 @@ export class Renderer {
   private drawWalkers(sim: Simulation, clock: number): void {
     for (const w of sim.walkers) {
       if (w.state === 'dead') continue;
-      this.drawLion(w, clock);
+      this.drawTiger(w, clock);
     }
   }
 
-  private drawLion(w: WalkerEntity, clock: number): void {
+  private drawTiger(w: WalkerEntity, clock: number): void {
     const ctx = this.ctx;
     const b = w.body;
     if (this.drawWalkerRig(w, clock)) return;
     if (this.drawWalkerSprite(w, clock)) return;
     if (w.state === 'climb') {
-      this.drawLionClimbing(w, clock);
+      this.drawTigerClimbing(w, clock);
       return;
     }
     // 歩幅は移動距離に同期させる。止まれば脚も止まる。
@@ -704,7 +704,7 @@ export class Renderer {
     ctx.save();
     // 足元を軸に一回り大きく描く。当たり判定は変えずに存在感だけ上げる。
     ctx.translate(b.px, b.py + 12);
-    ctx.scale((w.dir >= 0 ? 1 : -1) * LION_SCALE, LION_SCALE);
+    ctx.scale((w.dir >= 0 ? 1 : -1) * TIGER_SCALE, TIGER_SCALE);
     ctx.translate(0, -12 + bob);
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
@@ -856,7 +856,7 @@ export class Renderer {
   }
 
   /** ロープにしがみついた姿勢。手足を交互に出して登る。 */
-  private drawLionClimbing(w: WalkerEntity, clock: number): void {
+  private drawTigerClimbing(w: WalkerEntity, clock: number): void {
     const ctx = this.ctx;
     const b = w.body;
     const swing = Math.sin(b.py * 0.22);
