@@ -133,12 +133,20 @@ Walking animals cannot jump, so terrain is tightly constrained by these values.
 | --- | --- | --- |
 | Walking speed | 62 px/s | |
 | Climbable step | 13 px | Anything higher counts as a wall and the animal turns back |
-| Rope climbing | 52 px/s | The only means of vertical movement |
-| Jump-off from the top of a rope | vx 95 / vy 70 | Sets the maximum reach to a neighbouring platform |
+| Rope / ladder climbing | 52 px/s | The means of vertical movement |
+| Jump-off from the top | vx 95 / vy 70 | Sets the maximum reach to a neighbouring platform |
+| Grab range | 20 px horizontal / 20 px vertical | Slack around the 8x12 hitbox. Beyond it, nothing is within reach |
 
 A `platform` is 72 px wide. **A gap wider than that cannot be bridged with a
 single platform** — if both ends do not rest on terrain, it falls. Provide a
-rope wherever terrain requires vertical movement.
+rope or a ladder wherever terrain requires vertical movement.
+
+A `ladder` is 160 px long. An animal grabs the rung nearest its own height, so
+**the bottom end must reach the animal's body (its centre, ±32 px)**. At the top
+end it hops off in the direction it was heading, but the hop is ballistic and
+its upward speed is only 70. **Put the top 30-60 px above the platform you want
+it to reach, and keep the horizontal offset within 20-30 px.** Miss either and
+it falls short.
 
 A `bridge` is placed by picking two points, the same way a rope is. **Its sag
 is about 0.18x the distance between those two points** and barely changes
@@ -150,6 +158,11 @@ are drawn, not simulated). Measured maximum usable span is around 300 px.
 A balloon rises only until its rope is fully taut, so the rope length — the
 distance between the two points at placement time — determines the balloon's
 final height.
+
+One balloon nets 7000 of lift (5.0 in units of mass). **A ladder masses 5.2, so
+one balloon cannot raise it and two can.** Rope weighs too — 0.1 per node, one
+node every 12 px — so the longer the drop, the smaller the margin (two balloons
+hold a ladder on a rope of roughly 300 px).
 
 ## Character Art
 
@@ -200,6 +213,7 @@ Thresholds need tuning per illustration. Measured upper bounds for the tiger art
 | --- | --- |
 | Platform | Serves as footing or a ramp. Tilt it and objects slide |
 | Bridge | Strung between two points. Sags under its own weight. Animals walk across it |
+| Ladder | Animals grab it and climb. It phases through animals; too heavy to hang from fewer than two balloons |
 | Balloon | Floats upward and lifts whatever it is tied to. Pops on spikes or blasts |
 | Rope | Connects two points and can be climbed. Burns from one end when lit, and eventually snaps |
 | Bomb | Explodes shortly after being lit. Startles birds into flight and blows objects away |
@@ -217,10 +231,11 @@ Thresholds need tuning per illustration. Measured upper bounds for the tiger art
 | 04 | Fuse | Campfire → fuse → explosion → birds take flight |
 | 05 | Suspended in Mid-Air | Hang a bomb from a balloon; fuse length sets the height |
 | 06 | Bridge the Ravine | Span the ravine with a bridge, then climb with a balloon on the far side |
+| 07 | Two Hanging Ladders | Hang ladders where none can stand — two balloons apiece, since they are heavy |
 
 ## Not Yet Implemented
 
-- More stages (6 at present; the original had 15 per title)
+- More stages (7 at present; the original had 15 per title)
 - Mediterranean and Alaska settings (palettes are already in `src/render/theme.ts`)
 - Stages using the spring, weight, and pulley (behaviour is implemented but unused)
 - Sound effects
