@@ -1,0 +1,44 @@
+{
+  "id": "amazon-06",
+  "name": "ハシゴを吊る",
+  "biome": "amazon",
+  "brief": "王冠は谷の向こうの棚の上。ハシゴを立てる地面はない。ならば、空から吊るせ。",
+  "mission": { "type": "reach_goal", "target": "tiger" },
+  "protect": ["tiger"],
+  "world": {
+    "gravity": 1400,
+    "wind": 0,
+    "bounds": { "w": 800, "h": 600 },
+    "timeLimit": 60
+  },
+  "terrain": [
+    { "material": "rock", "x": 225, "y": 470, "hw": 225, "hh": 130 },
+    { "material": "rock", "x": 655, "y": 250, "hw": 165, "hh": 26 }
+  ],
+  "actors": [{ "type": "tiger", "x": 60, "y": 328, "dir": 1 }],
+  "props": [{ "type": "goal", "id": "crown", "x": 730, "y": 196, "hw": 24, "hh": 28 }],
+  "inventory": [
+    { "item": "ladder", "count": 1 },
+    { "item": "balloon", "count": 1 },
+    { "item": "rope", "count": 1 }
+  ],
+  "par": 3,
+  "hints": [
+    "トラは崖から歩いて落ちる。落ちるより先に、つかまる物を出してやる。",
+    "谷の上にハシゴは立たない。風船で吊れば、立てなくても掛かる。",
+    "風船は天井まで上がる。ハシゴが止まる高さは、風船とハシゴの間隔で決まる。",
+    "下端はトラの肩の高さへ、上端は棚より少し上へ。"
+  ],
+  "solution": [
+    { "id": "p0", "item": "ladder", "x": 470, "y": 400 },
+    { "id": "p1", "item": "balloon", "x": 470, "y": 174 },
+    {
+      "id": "p2",
+      "item": "rope",
+      "x": 0,
+      "y": 0,
+      "from": { "target": "p1" },
+      "to": { "target": "p0" }
+    }
+  ]
+}

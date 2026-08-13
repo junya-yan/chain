@@ -133,12 +133,17 @@ Walking animals cannot jump, so terrain is tightly constrained by these values.
 | --- | --- | --- |
 | Walking speed | 62 px/s | |
 | Climbable step | 13 px | Anything higher counts as a wall and the animal turns back |
-| Rope climbing | 52 px/s | The only means of vertical movement |
-| Jump-off from the top of a rope | vx 95 / vy 70 | Sets the maximum reach to a neighbouring platform |
+| Rope / ladder climbing | 52 px/s | The means of vertical movement |
+| Jump-off from the top | vx 95 / vy 70 | Sets the maximum reach to a neighbouring platform |
+| Grab range | 20 px horizontal / 20 px vertical | Slack around the 8x12 hitbox. Beyond it, nothing is within reach |
 
 A `platform` is 72 px wide. **A gap wider than that cannot be bridged with a
 single platform** — if both ends do not rest on terrain, it falls. Provide a
-rope wherever terrain requires vertical movement.
+rope or a ladder wherever terrain requires vertical movement.
+
+The jump-off is ballistic and its upward speed is only 70. **Put the top about
+30 px above the platform you want the animal to reach, and keep the horizontal
+offset within 20-30 px.** Outside that, it falls short.
 
 A balloon rises only until its rope is fully taut, so the rope length — the
 distance between the two points at placement time — determines the balloon's
@@ -192,6 +197,7 @@ Thresholds need tuning per illustration. Measured upper bounds for the tiger art
 | Item | Behaviour |
 | --- | --- |
 | Platform | Serves as footing or a ramp. Tilt it and objects slide |
+| Ladder | Animals grab it and climb. It phases through animals, so climbing never shoves them aside |
 | Balloon | Floats upward and lifts whatever it is tied to. Pops on spikes or blasts |
 | Rope | Connects two points and can be climbed. Burns from one end when lit, and eventually snaps |
 | Bomb | Explodes shortly after being lit. Startles birds into flight and blows objects away |
@@ -208,10 +214,11 @@ Thresholds need tuning per illustration. Measured upper bounds for the tiger art
 | 03 | Reel in the Balloon | A balloon stops where its rope becomes taut |
 | 04 | Fuse | Campfire → fuse → explosion → birds take flight |
 | 05 | Suspended in Mid-Air | Hang a bomb from a balloon; fuse length sets the height |
+| 06 | Hang the Ladder | Hang a ladder where none can stand; its top decides where the climb ends |
 
 ## Not Yet Implemented
 
-- More stages (5 at present; the original had 15 per title)
+- More stages (6 at present; the original had 15 per title)
 - Mediterranean and Alaska settings (palettes are already in `src/render/theme.ts`)
 - Stages using the spring, weight, and pulley (behaviour is implemented but unused)
 - Sound effects
