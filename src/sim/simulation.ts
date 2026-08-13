@@ -10,6 +10,7 @@
 import {
   CAT_ACTOR,
   CAT_ALL,
+  CAT_DECK,
   CAT_DYNAMIC,
   CAT_ROPE,
   CAT_STATIC,
@@ -32,6 +33,15 @@ export const FIXED_DT = 1 / 60;
 
 const WALK_SPEED = 62;
 const ROPE_NODE_SPACING = 12;
+/**
+ * 吊り橋のたるみ。架け渡す 2 点間距離に対する、踏み板の総延長の余り。
+ * 踏み板は伸びないので、この余りだけが「垂れしろ」になる。0 だと張った棒に
+ * なってしまい、吊り橋にならない。
+ *
+ * 実測では、たわみの深さはおおよそ「架けた距離 x 0.18」になる。深さは
+ * 架けた距離だけで決まり、何が乗っても大きくは変わらない（板が伸びないため）。
+ */
+const BRIDGE_SLACK = 0.06;
 const BOMB_FUSE = 0.9;
 const BLAST_RADIUS = 96;
 const BLAST_POWER = 620;
@@ -86,6 +96,15 @@ export interface RopeEntity {
   burn: number[];
   burning: boolean[];
   severed: boolean;
+}
+
+export interface BridgeEntity {
+  kind: 'bridge';
+  id: string;
+  /** 端から順に並んだ踏み板。 */
+  planks: Body[];
+  /** 踏み板どうしと両端を留める蝶番。 */
+  hinges: Link[];
 }
 
 export interface BalloonEntity {
@@ -169,6 +188,7 @@ export class Simulation {
   events: SimEvent[] = [];
 
   ropes: RopeEntity[] = [];
+  bridges: BridgeEntity[] = [];
   balloons: BalloonEntity[] = [];
   bombs: BombEntity[] = [];
   walkers: WalkerEntity[] = [];
@@ -283,7 +303,7 @@ export class Simulation {
         fixedRotation: true,
         linearDamping: 0.02,
         category: CAT_ACTOR,
-        mask: CAT_STATIC | CAT_DYNAMIC | CAT_ACTOR,
+        mask: CAT_STATIC | CAT_DYNAMIC | CAT_ACTOR | CAT_DECK,
         tag: a.type,
       });
       this.world.add(body);
@@ -306,9 +326,9 @@ export class Simulation {
   }
 
   private buildPlacements(placements: PlacementDef[]): void {
-    // ロープは接続先が先に存在している必要があるので、2 パスに分ける。
+    // 2 点を繋ぐ物は接続先が先に存在している必要があるので、2 パスに分ける。
     for (const p of placements) {
-      if (p.item === 'rope') continue;
+      if (ITEMS[p.item].spans) continue;
       const spec = ITEMS[p.item];
       const common = {
         x: p.x,
@@ -350,6 +370,15 @@ export class Simulation {
       }
     }
 
+    // 吊り橋はロープの接続先になれるので、ロープより先に架ける。
+    for (const p of placements) {
+      if (p.item !== 'bridge' || !p.from || !p.to) continue;
+      const a = this.resolveAnchor(p.from);
+      const b = this.resolveAnchor(p.to);
+      if (!a || !b) continue;
+      this.createBridge(p.id, a, b);
+    }
+
     for (const p of placements) {
       if (p.item !== 'rope' || !p.from || !p.to) continue;
       const a = this.resolveAnchor(p.from);
@@ -364,6 +393,99 @@ export class Simulation {
     if (placed) return placed;
     const prop = this.props.find((p) => p.id === ref.target);
     return prop?.body ?? null;
+  }
+
+  /**
+   * 2 つのボディの間に吊り橋を架ける。
+   *
+   * 踏み板を蝶番で数珠つなぎにし、両端を留める。板は伸びないので、
+   * 総延長と 2 点間距離の差（BRIDGE_SLACK）だけが垂れしろになる。つまり
+   * 「どれだけ垂れるか」は架け渡した距離だけで決まり、毎回同じになる。
+   *
+   * 初期姿勢は、垂れた後とほぼ同じ放物線に並べておく。まっすぐ並べると
+   * 開始直後に大きく落ち込み、配置画面と実行直後で見た目が変わってしまう。
+   */
+  private createBridge(id: string, a: Body, b: Body): BridgeEntity {
+    const pa = surfacePoint(a, b.px, b.py);
+    const pb = surfacePoint(b, a.px, a.py);
+    const span = distance(pa.x, pa.y, pb.x, pb.y);
+    const deck = span * (1 + BRIDGE_SLACK);
+    const spec = ITEMS.bridge;
+    // 踏み板の枚数は総延長から決める。1 枚の幅は仕様値のおおよそに収まる。
+    const count = Math.max(2, Math.round(deck / (spec.hw * 2)));
+    const hw = deck / count / 2;
+    // 弛んだ紐が描く放物線の垂れ量。弧長が総延長に一致するようにとった近似。
+    const sag = Math.sqrt((3 * span * (deck - span)) / 8);
+
+    const at = (t: number): Vec => ({
+      x: pa.x + (pb.x - pa.x) * t,
+      y: pa.y + (pb.y - pa.y) * t + 4 * sag * t * (1 - t),
+    });
+
+    const planks: Body[] = [];
+    for (let i = 0; i < count; i++) {
+      const t = (i + 0.5) / count;
+      const c = at(t);
+      // 接線に沿わせる。板どうしが折れ曲がった状態から始めない。
+      const angle = Math.atan2(pb.y - pa.y + 4 * sag * (1 - 2 * t), pb.x - pa.x);
+      const plank = createBox({
+        x: c.x,
+        y: c.y,
+        angle,
+        hw,
+        hh: spec.hh,
+        mass: spec.mass / count,
+        friction: spec.friction,
+        restitution: 0,
+        linearDamping: spec.linearDamping,
+        angularDamping: spec.angularDamping,
+        category: CAT_DECK,
+        // 隣の板とは蝶番で繋がっているので、板どうしは当てない。当てると
+        // 常時めり込み扱いになって橋が震える。
+        mask: CAT_STATIC | CAT_DYNAMIC | CAT_ACTOR,
+        tag: 'plank',
+      });
+      this.world.add(plank);
+      planks.push(plank);
+    }
+
+    // 蝶番。隣り合う板の端どうしを 1 点で留めるので、折れ曲がりはするが
+    // 離れはしない。
+    const hinges: Link[] = [];
+    for (let i = 0; i < count - 1; i++) {
+      const joint = toWorld(planks[i], hw, 0);
+      hinges.push(
+        this.world.connect(planks[i], planks[i + 1], {
+          anchorA: joint,
+          anchorB: joint,
+          rest: 0,
+          rigid: true,
+        }),
+      );
+    }
+    hinges.push(
+      this.world.connect(a, planks[0], { anchorA: pa, anchorB: pa, rest: 0, rigid: true }),
+      this.world.connect(b, planks[count - 1], { anchorA: pb, anchorB: pb, rest: 0, rigid: true }),
+    );
+
+    // 蝶番だけでは多段拘束が伸び、踏むたびに底なしに垂れてしまう。ロープの
+    // spine と同じ考えで、板ごとに「両端から桁を辿った長さ以上には離れない」
+    // 拘束を重ねる。これで垂れる深さが架けた距離だけで決まるようになる。
+    for (let i = 0; i < count; i++) {
+      this.world.connect(a, planks[i], { anchorA: pa, rest: hw * (2 * i + 1), rigid: false });
+      this.world.connect(b, planks[i], {
+        anchorA: pb,
+        rest: hw * (2 * (count - 1 - i) + 1),
+        rigid: false,
+      });
+    }
+
+    const bridge: BridgeEntity = { kind: 'bridge', id, planks, hinges };
+    for (const plank of planks) plank.owner = bridge;
+    // 真ん中の板を橋の代表にする。ロープはここへ繋がる。
+    this.placed.set(id, planks[count >> 1]);
+    this.bridges.push(bridge);
+    return bridge;
   }
 
   /**
@@ -632,7 +754,9 @@ export class Simulation {
         if (w.turnCooldown <= 0) {
           for (const c of this.world.touching(body)) {
             const facingWall = Math.abs(c.nx) > 0.7 && Math.sign(c.nx) === Math.sign(w.dir);
-            if (!facingWall || c.other.tag === 'rope') continue;
+            // 吊り橋の踏み板は、傾いていても床であって壁ではない。たわんだ橋の
+            // 一番急なところは端なので、ここを壁と見て引き返すと永遠に渡れない。
+            if (!facingWall || c.other.tag === 'rope' || c.other.tag === 'plank') continue;
             const feet = body.py + 12;
             const rise = feet - bodyTop(c.other);
             if (rise > 0 && rise <= STEP_HEIGHT) {
@@ -945,16 +1069,33 @@ export function anchorCandidates(
   placements: PlacementDef[],
 ): AnchorInfo[] {
   const out: AnchorInfo[] = [];
+  /** 2 点を繋ぐ物の掴み所を出すために、全ての点の位置を引けるようにしておく。 */
+  const pos = new Map<string, Vec>();
+
   for (const p of stage.props ?? []) {
-    if (p.type === 'anchor' || p.type === 'campfire') {
-      out.push({ id: p.id ?? p.type, x: p.x, y: p.y, attachable: true });
-    }
+    if (p.type !== 'anchor' && p.type !== 'campfire') continue;
+    const id = p.id ?? p.type;
+    pos.set(id, { x: p.x, y: p.y });
+    out.push({ id, x: p.x, y: p.y, attachable: true });
   }
+
   for (const p of placements) {
-    if (p.item === 'rope') continue;
+    if (ITEMS[p.item].spans) continue;
+    pos.set(p.id, { x: p.x, y: p.y });
     if (!ITEMS[p.item].attach) continue;
     out.push({ id: p.id, x: p.x, y: p.y, attachable: true });
   }
+
+  // 吊り橋の掴み所は真ん中。ここを吊れば、たわみを持ち上げられる。
+  // 位置は架け渡した 2 点の中点でよい。配置中の橋はまだ垂れていない。
+  for (const p of placements) {
+    if (!ITEMS[p.item].spans || !ITEMS[p.item].attach) continue;
+    const a = p.from && pos.get(p.from.target);
+    const b = p.to && pos.get(p.to.target);
+    if (!a || !b) continue;
+    out.push({ id: p.id, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, attachable: true });
+  }
+
   return out;
 }
 

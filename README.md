@@ -140,6 +140,13 @@ A `platform` is 72 px wide. **A gap wider than that cannot be bridged with a
 single platform** — if both ends do not rest on terrain, it falls. Provide a
 rope wherever terrain requires vertical movement.
 
+A `bridge` is placed by picking two points, the same way a rope is. **Its sag
+is about 0.18x the distance between those two points** and barely changes
+under load, because the planks do not stretch. The deck only hinges every
+60 px: any finer and the plank underfoot is lighter than the animal and moves
+too much for it to push off, so it never gets across (the finer planks you see
+are drawn, not simulated). Measured maximum usable span is around 300 px.
+
 A balloon rises only until its rope is fully taut, so the rope length — the
 distance between the two points at placement time — determines the balloon's
 final height.
@@ -192,6 +199,7 @@ Thresholds need tuning per illustration. Measured upper bounds for the tiger art
 | Item | Behaviour |
 | --- | --- |
 | Platform | Serves as footing or a ramp. Tilt it and objects slide |
+| Bridge | Strung between two points. Sags under its own weight. Animals walk across it |
 | Balloon | Floats upward and lifts whatever it is tied to. Pops on spikes or blasts |
 | Rope | Connects two points and can be climbed. Burns from one end when lit, and eventually snaps |
 | Bomb | Explodes shortly after being lit. Startles birds into flight and blows objects away |
@@ -208,10 +216,11 @@ Thresholds need tuning per illustration. Measured upper bounds for the tiger art
 | 03 | Reel in the Balloon | A balloon stops where its rope becomes taut |
 | 04 | Fuse | Campfire → fuse → explosion → birds take flight |
 | 05 | Suspended in Mid-Air | Hang a bomb from a balloon; fuse length sets the height |
+| 06 | Bridge the Ravine | Span the ravine with a bridge, then climb with a balloon on the far side |
 
 ## Not Yet Implemented
 
-- More stages (5 at present; the original had 15 per title)
+- More stages (6 at present; the original had 15 per title)
 - Mediterranean and Alaska settings (palettes are already in `src/render/theme.ts`)
 - Stages using the spring, weight, and pulley (behaviour is implemented but unused)
 - Sound effects

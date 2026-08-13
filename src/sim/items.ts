@@ -30,6 +30,12 @@ export interface ItemSpec {
   fragile: boolean;
   /** プレイヤーが角度を変えられるか。 */
   rotatable: boolean;
+  /**
+   * 場所ではなく「2 点」を指定して置くか。
+   * ロープと吊り橋がこれにあたる。置き方も当たり判定の持ち方も普通の物とは
+   * 別なので、UI・配置判定・シミュレーションはこの旗で分岐する。
+   */
+  spans: boolean;
 }
 
 const DEFAULTS: ItemSpec = {
@@ -50,6 +56,7 @@ const DEFAULTS: ItemSpec = {
   flammable: false,
   fragile: false,
   rotatable: false,
+  spans: false,
 };
 
 export const ITEMS: Record<ItemId, ItemSpec> = {
@@ -65,6 +72,31 @@ export const ITEMS: Record<ItemId, ItemSpec> = {
     angularDamping: 0.6,
     attach: true,
     rotatable: true,
+  },
+  bridge: {
+    ...DEFAULTS,
+    label: '吊り橋',
+    blurb: '2 点に架け渡す。自分の重みでたわむ。動物が渡れる。',
+    shape: 'box',
+    /*
+     * 踏み板 1 枚ぶんの寸法。橋の長さは架け渡す 2 点の距離で決まるので、
+     * これは「何 px ごとに折れるか」を決める値になる。
+     *
+     * 小さくすると細かくしなって見た目は良くなるが、渡れなくなる。歩く動物は
+     * 静止した床を蹴る前提で速度を決めており、足元の板が自分より軽くて
+     * 動き回ると踏ん張れないため。実測では 50px を割ると渡りきれなくなる。
+     * 見た目の細かさは描画側で板を刻んで出す。
+     */
+    hw: 30,
+    hh: 3,
+    // 橋全体の質量。踏み板 1 枚あたりはこれを枚数で割る。
+    mass: 1.5,
+    friction: 0.85,
+    // たわみの揺れが収まらないと渡れるかどうかが読めない。強めに減衰させる。
+    linearDamping: 1.4,
+    angularDamping: 2.5,
+    attach: true,
+    spans: true,
   },
   balloon: {
     ...DEFAULTS,
@@ -93,6 +125,7 @@ export const ITEMS: Record<ItemId, ItemSpec> = {
     mass: 0.1,
     friction: 0.4,
     flammable: true,
+    spans: true,
   },
   bomb: {
     ...DEFAULTS,
@@ -143,6 +176,7 @@ export const ITEMS: Record<ItemId, ItemSpec> = {
 
 export const ITEM_ORDER: ItemId[] = [
   'platform',
+  'bridge',
   'balloon',
   'rope',
   'bomb',

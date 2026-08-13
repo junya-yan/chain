@@ -26,9 +26,9 @@ export interface Ghost {
 export interface RenderState {
   phase: 'place' | 'run';
   ghost: Ghost | null;
-  /** ロープ接続中に光らせる接続点。 */
+  /** 2 点を繋ぐアイテムを選んでいる間、光らせる接続点。 */
   anchors: AnchorInfo[];
-  ropeFrom: AnchorInfo | null;
+  spanFrom: AnchorInfo | null;
   pointer: { x: number; y: number } | null;
   selectedId: string | null;
   /** 演出用の実時間（秒）。 */
@@ -46,6 +46,10 @@ interface Effect {
 
 /** キャラクターの輪郭色。濃い輪郭が原作の手描き調の要になっている。 */
 const INK = '#2b1206';
+/** 吊り橋の手すり綱を、踏み板の何 px 上に通すか。 */
+const BRIDGE_RAIL = 11;
+/** 吊り橋の踏み板を、何 px ごとに刻んで描くか（見た目だけ。桁とは別）。 */
+const BRIDGE_SLAT_GAP = 9;
 /** 当たり判定は変えずに、見た目だけ一回り大きくする倍率。 */
 const TIGER_SCALE = 1.35;
 const BIRD_SCALE = 1.25;
@@ -133,6 +137,7 @@ export class Renderer {
     for (const p of stage.props ?? []) this.drawProp(p, theme, state.clock);
 
     this.drawRopes(sim, theme);
+    this.drawBridges(sim);
     this.drawBodies(sim, theme, state);
     this.drawBirds(sim, state.clock);
     this.drawWalkers(sim, state.clock);
@@ -495,6 +500,69 @@ export class Renderer {
     }
   }
 
+  /**
+   * 吊り橋。
+   *
+   * 当たり判定の桁は 60px ごとにしか折れないが（歩く動物が渡れる下限）、
+   * 見た目はそれより細かい踏み板を桁の上に刻んで出す。桁の形そのものを
+   * なぞって描くので、見えている板の位置と足が乗る位置はずれない。
+   */
+  private drawBridges(sim: Simulation): void {
+    const ctx = this.ctx;
+    for (const bridge of sim.bridges) {
+      const beams = bridge.planks.filter((p) => p.alive);
+      if (beams.length === 0) continue;
+
+      // 手すり綱。桁の両端を順に辿るので、橋の全長に通る。
+      ctx.beginPath();
+      for (const [i, b] of beams.entries()) {
+        const hw = Math.abs(b.localVerts[0].x);
+        const cos = Math.cos(b.angle);
+        const sin = Math.sin(b.angle);
+        for (const lx of i === 0 ? [-hw, hw] : [hw]) {
+          const x = b.px + lx * cos + BRIDGE_RAIL * sin;
+          const y = b.py + lx * sin - BRIDGE_RAIL * cos;
+          if (i === 0 && lx === -hw) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+      }
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 3.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+      ctx.strokeStyle = '#c8913a';
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      // 踏み板と吊り綱。桁のローカル座標に沿って等間隔に刻む。
+      for (const b of beams) {
+        const hw = Math.abs(b.localVerts[0].x);
+        const slats = Math.max(2, Math.round((hw * 2) / BRIDGE_SLAT_GAP));
+        const gap = (hw * 2) / slats;
+        ctx.save();
+        ctx.translate(b.px, b.py);
+        ctx.rotate(b.angle);
+        for (let i = 0; i < slats; i++) {
+          const lx = -hw + gap * (i + 0.5);
+          ctx.beginPath();
+          ctx.moveTo(lx, -3);
+          ctx.lineTo(lx, -BRIDGE_RAIL);
+          ctx.strokeStyle = '#a8752c';
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+          this.roundRect(lx - gap * 0.36, -3, gap * 0.72, 6, 1.5);
+          ctx.fillStyle = '#e0aa52';
+          ctx.fill();
+          ctx.strokeStyle = INK;
+          ctx.lineWidth = 1.3;
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+  }
+
   private drawBodies(sim: Simulation, theme: Theme, state: RenderState): void {
     for (const body of sim.world.bodies) {
       if (!body.alive) continue;
@@ -649,6 +717,53 @@ export class Renderer {
         ctx.beginPath();
         ctx.arc(0, 0, r * 0.3, 0, Math.PI * 2);
         ctx.fill();
+        break;
+      }
+      case 'bridge': {
+        // アイコン専用。盤上の吊り橋は drawBridges が板の実体を描く。
+        // たわんだ一連の板として、置く前から挙動が想像できる形にする。
+        // アイコンは桁 1 本ぶん(hw)の大きさに合わせて縮小されるので、
+        // それを見越して大きめに描く。
+        const half = 27;
+        const sag = 14;
+        const yAt = (t: number): number => 4 * sag * t * (1 - t) - sag * 0.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        for (let i = 0; i <= 12; i++) {
+          const t = i / 12;
+          const x = -half + half * 2 * t;
+          const y = yAt(t) - 11;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = INK;
+        ctx.lineWidth = 4.5;
+        ctx.stroke();
+        ctx.strokeStyle = '#c8913a';
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+        for (let i = 0; i <= 7; i++) {
+          const t = i / 7;
+          const x = -half + half * 2 * t;
+          const y = yAt(t);
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(Math.atan2(4 * sag * (1 - 2 * t), half * 2));
+          ctx.beginPath();
+          ctx.moveTo(0, -11);
+          ctx.lineTo(0, 0);
+          ctx.strokeStyle = '#a8752c';
+          ctx.lineWidth = 1.8;
+          ctx.stroke();
+          this.roundRect(-4, -2.5, 8, 5, 1.5);
+          ctx.fillStyle = '#e0aa52';
+          ctx.fill();
+          ctx.strokeStyle = INK;
+          ctx.lineWidth = 1.8;
+          ctx.stroke();
+          ctx.restore();
+        }
         break;
       }
       case 'rope': {
@@ -1039,7 +1154,7 @@ export class Renderer {
     const ctx = this.ctx;
     if (state.phase !== 'place') return;
 
-    // ロープ接続中の候補点を光らせる。
+    // 2 点を繋ぐアイテムの候補点を光らせる。
     if (state.anchors.length > 0) {
       const pulse = 0.5 + Math.sin(state.clock * 5) * 0.25;
       for (const a of state.anchors) {
@@ -1054,12 +1169,12 @@ export class Renderer {
     }
 
     // 接続の 1 点目が決まっていれば、ポインタまで線を引く。
-    if (state.ropeFrom && state.pointer) {
+    if (state.spanFrom && state.pointer) {
       ctx.strokeStyle = 'rgba(255,204,68,0.85)';
       ctx.lineWidth = 2.5;
       ctx.setLineDash([7, 5]);
       ctx.beginPath();
-      ctx.moveTo(state.ropeFrom.x, state.ropeFrom.y);
+      ctx.moveTo(state.spanFrom.x, state.spanFrom.y);
       ctx.lineTo(state.pointer.x, state.pointer.y);
       ctx.stroke();
       ctx.setLineDash([]);
