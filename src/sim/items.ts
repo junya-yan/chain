@@ -30,14 +30,6 @@ export interface ItemSpec {
   fragile: boolean;
   /** プレイヤーが角度を変えられるか。 */
   rotatable: boolean;
-  /** 姿勢を保つか。true なら倒れも回りもしない。 */
-  fixedRotation: boolean;
-  /**
-   * 動物がつかまって登れるか。
-   * 登るには動物と重なれないといけないので、登れる物は動物とすり抜ける
-   * （Simulation がこの旗を見て衝突マスクを決める）。
-   */
-  climbable: boolean;
 }
 
 const DEFAULTS: ItemSpec = {
@@ -58,8 +50,6 @@ const DEFAULTS: ItemSpec = {
   flammable: false,
   fragile: false,
   rotatable: false,
-  fixedRotation: false,
-  climbable: false,
 };
 
 export const ITEMS: Record<ItemId, ItemSpec> = {
@@ -75,23 +65,6 @@ export const ITEMS: Record<ItemId, ItemSpec> = {
     angularDamping: 0.6,
     attach: true,
     rotatable: true,
-  },
-  ladder: {
-    ...DEFAULTS,
-    label: 'ハシゴ',
-    blurb: '動物がつかまって登る。上端まで登ったら横へ飛び移る。',
-    shape: 'box',
-    hw: 9,
-    hh: 80,
-    // 風船 1 個で吊り上がる重さにする。重すぎると「吊る」連鎖が成立しない。
-    mass: 1.6,
-    friction: 0.7,
-    // 吊られたときの揺れを早く収める。止まる高さが読めないと配置できない。
-    linearDamping: 1.2,
-    attach: true,
-    // 倒れたハシゴは登れず、原因も分かりにくい。姿勢は固定する。
-    fixedRotation: true,
-    climbable: true,
   },
   balloon: {
     ...DEFAULTS,
@@ -170,7 +143,6 @@ export const ITEMS: Record<ItemId, ItemSpec> = {
 
 export const ITEM_ORDER: ItemId[] = [
   'platform',
-  'ladder',
   'balloon',
   'rope',
   'bomb',

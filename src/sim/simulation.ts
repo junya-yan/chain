@@ -95,12 +95,6 @@ export interface BalloonEntity {
   popped: boolean;
 }
 
-export interface LadderEntity {
-  kind: 'ladder';
-  id: string;
-  body: Body;
-}
-
 export interface BombEntity {
   kind: 'bomb';
   id: string;
@@ -130,25 +124,11 @@ export interface WalkerEntity {
   grounded: boolean;
   /** 反転直後の連打を防ぐためのクールダウン。 */
   turnCooldown: number;
-  /** 手を離した直後に同じ物を掴み直さないためのクールダウン。 */
+  /** 手を離した直後に同じロープを掴み直さないためのクールダウン。 */
   climbCooldown: number;
-  /** 掴んでいるロープ／ハシゴの id。state === 'climb' の間だけ意味を持つ。 */
-  climbId: string;
   /** 登っているのに高度が上がらない状態が続いた時間。 */
   climbStall: number;
   climbLastY: number;
-}
-
-/** ロープやハシゴの「掴める場所」。登り処理はこれだけを見る。 */
-interface ClimbHold {
-  /** 掴んでいる物の id。掴んでいる間はこれを固定する。 */
-  id: string;
-  /** 動物が身を寄せる x。 */
-  x: number;
-  /** 掴む点の y。より高い所を掴めるならそちらを選ぶ。 */
-  y: number;
-  /** 掴んでいる物の上端。ここに頭が届いたら手を離す。 */
-  top: number;
 }
 
 export type BirdState = 'perched' | 'startled' | 'flying' | 'gone';
@@ -189,7 +169,6 @@ export class Simulation {
   events: SimEvent[] = [];
 
   ropes: RopeEntity[] = [];
-  ladders: LadderEntity[] = [];
   balloons: BalloonEntity[] = [];
   bombs: BombEntity[] = [];
   walkers: WalkerEntity[] = [];
@@ -318,7 +297,6 @@ export class Simulation {
         grounded: false,
         turnCooldown: 0,
         climbCooldown: 0,
-        climbId: '',
         climbStall: 0,
         climbLastY: a.y,
       };
@@ -343,9 +321,6 @@ export class Simulation {
         linearDamping: spec.linearDamping,
         angularDamping: spec.angularDamping,
         buoyancy: spec.buoyancyScale * this.world.gravity,
-        fixedRotation: spec.fixedRotation,
-        // 登れる物は、動物が重なれないと掴めない。動物とだけすり抜けさせる。
-        mask: spec.climbable ? CAT_STATIC | CAT_DYNAMIC : CAT_ALL,
         tag: p.item,
       };
       const body =
@@ -372,10 +347,6 @@ export class Simulation {
         };
         body.owner = ent;
         this.bombs.push(ent);
-      } else if (spec.climbable) {
-        const ent: LadderEntity = { kind: 'ladder', id: p.id, body };
-        body.owner = ent;
-        this.ladders.push(ent);
       }
     }
 
@@ -686,9 +657,9 @@ export class Simulation {
   }
 
   /**
-   * ロープやハシゴにつかまって登る。
+   * ロープにつかまって登る。
    *
-   * 歩くだけでは高いところへ行けないので、縦方向の移動はここが担う。
+   * 歩くだけでは高いところへ行けないので、縦方向の移動はロープが担う。
    * 掴んでいる間は重力を打ち消し、一定速度で上る。上端まで来たら進行方向へ
    * 手を離す。true を返したら、その動物のこのステップの処理は終わり。
    */
@@ -696,22 +667,25 @@ export class Simulation {
     const body = w.body;
 
     if (w.state === 'climb') {
-      // 掴み替えはしない。ハシゴを吊っているロープのように別の掴める物が
-      // 上に続いていると、勝手に乗り移って狙った高さを通り過ぎてしまう。
-      const hold = this.climbHoldNear(body, CLIMB_HOLD_MARGIN, w.climbId);
-      if (!hold) {
-        this.releaseClimb(w);
+      const node = this.ropeNodeNear(body, CLIMB_HOLD_MARGIN);
+      if (!node) {
+        this.releaseRope(w);
         return false;
       }
       // 掴んでいる間だけ重力を相殺し、素直に一定速度で上る。
       body.buoyancy = this.world.gravity;
       body.vy = -CLIMB_SPEED;
-      body.vx = (hold.x - body.px) * 6;
+      body.vx = (node.px - body.px) * 6;
       body.driveActive = false;
+
+      // 掴んでいるロープの上端。
+      let top = Infinity;
+      const rope = node.owner as RopeEntity;
+      for (const n of rope.nodes) if (n.alive) top = Math.min(top, n.py);
 
       // これ以上登れないなら手を離す。上端に頭が届いた場合のほか、風船など
       // 障害物につかえて高度が上がらなくなった場合もここで拾う。
-      if (body.py - CLIMB_HEAD > hold.top) {
+      if (body.py - CLIMB_HEAD > top) {
         this.climbStallCheck(w, dt);
       } else {
         w.climbStall = CLIMB_STALL_LIMIT;
@@ -720,7 +694,7 @@ export class Simulation {
       // 上端では進行方向へ飛び移る。真下に落とすだけだと、すぐ隣の足場にも
       // 移れず登った意味がなくなる。
       if (w.climbStall >= CLIMB_STALL_LIMIT) {
-        this.releaseClimb(w);
+        this.releaseRope(w);
         body.vx = w.dir * CLIMB_HOP_VX;
         body.vy = -CLIMB_HOP_VY;
       }
@@ -728,10 +702,10 @@ export class Simulation {
     }
 
     if (w.climbCooldown > 0) return false;
-    const hold = this.climbHoldNear(body, CLIMB_GRAB_MARGIN, null);
-    if (!hold) return false;
+    const node = this.ropeNodeNear(body, CLIMB_GRAB_MARGIN);
+    if (!node) return false;
+    // 足元がロープの下端より下にあるときだけ掴む（上から乗ったときは掴まない）。
     w.state = 'climb';
-    w.climbId = hold.id;
     w.grounded = false;
     return true;
   }
@@ -743,48 +717,29 @@ export class Simulation {
     w.climbLastY = w.body.py;
   }
 
-  private releaseClimb(w: WalkerEntity): void {
+  private releaseRope(w: WalkerEntity): void {
     w.state = 'fall';
     w.grounded = false;
     w.climbCooldown = 0.5;
-    w.climbId = '';
     w.climbStall = 0;
     w.body.buoyancy = 0;
   }
 
-  /**
-   * 手の届く範囲で最も高い掴み場所。
-   * onlyId を渡すと、その id の物だけを見る（掴んでいる物を追い続けるため）。
-   */
-  private climbHoldNear(body: Body, margin: number, onlyId: string | null): ClimbHold | null {
-    let best: ClimbHold | null = null;
-    const consider = (hold: ClimbHold): void => {
-      if (!best || hold.y < best.y) best = hold;
-    };
-
+  /** 動物の当たり判定に margin だけ余裕を持たせた範囲にあるロープのノード。 */
+  private ropeNodeNear(body: Body, margin: number): Body | null {
+    let best: Body | null = null;
+    let bestY = Infinity;
     for (const rope of this.ropes) {
-      if (onlyId !== null && rope.id !== onlyId) continue;
-      let top = Infinity;
-      for (const n of rope.nodes) if (n.alive) top = Math.min(top, n.py);
-      if (top === Infinity) continue;
       for (const n of rope.nodes) {
-        if (!n.alive || !withinReach(body, n.px, n.py, margin)) continue;
-        consider({ id: rope.id, x: n.px, y: n.py, top });
+        if (!n.alive) continue;
+        const dx = Math.abs(n.px - body.px) - 8;
+        const dy = Math.abs(n.py - body.py) - 12;
+        if (dx <= margin && dy <= margin && n.py < bestY) {
+          bestY = n.py;
+          best = n;
+        }
       }
     }
-
-    for (const ladder of this.ladders) {
-      if (onlyId !== null && ladder.id !== onlyId) continue;
-      const b = ladder.body;
-      if (!b.alive) continue;
-      // ハシゴは縦に長い。動物の高さに一番近い桟を掴む。
-      const top = bodyTop(b);
-      const bottom = bodyBottom(b);
-      const y = Math.max(top, Math.min(bottom, body.py));
-      if (!withinReach(body, b.px, y, margin)) continue;
-      consider({ id: ladder.id, x: b.px, y, top });
-    }
-
     return best;
   }
 
@@ -956,19 +911,6 @@ export function bodyTop(body: Body): number {
   let top = Infinity;
   for (const v of body.world) top = Math.min(top, v.y);
   return top;
-}
-
-/** body の最下端の y 座標。 */
-export function bodyBottom(body: Body): number {
-  if (body.kind === 'circle') return body.py + body.radius;
-  let bottom = -Infinity;
-  for (const v of body.world) bottom = Math.max(bottom, v.y);
-  return bottom;
-}
-
-/** 動物の当たり判定に margin だけ余裕を持たせた範囲に点があるか。 */
-function withinReach(body: Body, x: number, y: number, margin: number): boolean {
-  return Math.abs(x - body.px) - 8 <= margin && Math.abs(y - body.py) - 12 <= margin;
 }
 
 /**
