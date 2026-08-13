@@ -1,0 +1,56 @@
+{
+  "id": "amazon-06",
+  "name": "谷に橋を架ける",
+  "biome": "amazon",
+  "brief": "板では届かない谷。杭は両岸にある。渡った先の王冠は、さらに高い。",
+  "mission": { "type": "reach_goal", "target": "tiger" },
+  "protect": ["tiger"],
+  "world": {
+    "gravity": 1400,
+    "wind": 0,
+    "bounds": { "w": 800, "h": 600 },
+    "timeLimit": 40
+  },
+  "terrain": [
+    { "material": "rock", "x": 85, "y": 470, "hw": 185, "hh": 130 },
+    { "material": "rock", "x": 715, "y": 470, "hw": 185, "hh": 130 },
+    { "material": "rock", "x": 700, "y": 185, "hw": 80, "hh": 15 }
+  ],
+  "actors": [{ "type": "tiger", "x": 60, "y": 328, "dir": 1 }],
+  "props": [
+    { "type": "goal", "id": "crown", "x": 720, "y": 142, "hw": 24, "hh": 28 },
+    { "type": "anchor", "id": "near", "x": 270, "y": 343 },
+    { "type": "anchor", "id": "far", "x": 530, "y": 343 },
+    { "type": "anchor", "id": "peg", "x": 600, "y": 332 }
+  ],
+  "inventory": [
+    { "item": "bridge", "count": 1 },
+    { "item": "balloon", "count": 1 },
+    { "item": "rope", "count": 1 }
+  ],
+  "par": 3,
+  "hints": [
+    "谷は板 1 枚では渡れない。両岸の杭を橋でつなぐ。",
+    "渡っただけでは王冠に届かない。岸の杭がもう 1 本余っている。",
+    "風船はロープが張りきる高さで止まる。岩の上に飛び移れる高さを選ぶ。"
+  ],
+  "solution": [
+    {
+      "id": "p0",
+      "item": "bridge",
+      "x": 0,
+      "y": 0,
+      "from": { "target": "near" },
+      "to": { "target": "far" }
+    },
+    { "id": "p1", "item": "balloon", "x": 600, "y": 116 },
+    {
+      "id": "p2",
+      "item": "rope",
+      "x": 0,
+      "y": 0,
+      "from": { "target": "peg" },
+      "to": { "target": "p1" }
+    }
+  ]
+}

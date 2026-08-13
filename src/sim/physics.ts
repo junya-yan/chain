@@ -20,6 +20,8 @@ export const CAT_STATIC = 1;
 export const CAT_DYNAMIC = 2;
 export const CAT_ROPE = 4;
 export const CAT_ACTOR = 8;
+/** 吊り橋の踏み板。隣どうしは蝶番で繋がっているので、板どうしは当てない。 */
+export const CAT_DECK = 16;
 export const CAT_ALL = 0xffff;
 
 export type ShapeKind = 'circle' | 'poly';

@@ -30,8 +30,8 @@ export function canPlace(
   angle = 0,
   ignoreId: string | null = null,
 ): boolean {
-  // ロープは 2 点を繋ぐだけで、場所を占有しない。
-  if (item === 'rope') return true;
+  // ロープや吊り橋は 2 点を繋ぐだけで、場所を占有しない。
+  if (ITEMS[item].spans) return true;
 
   const { w, h } = stage.world.bounds;
   const { ex, ey } = extents(item, angle);
@@ -45,7 +45,7 @@ export function canPlace(
   }
 
   for (const p of placements) {
-    if (p.item === 'rope' || p.id === ignoreId) continue;
+    if (ITEMS[p.item].spans || p.id === ignoreId) continue;
     const other = extents(p.item, p.angle ?? 0);
     if (
       Math.abs(x - p.x) < ex + other.ex * 0.6 &&

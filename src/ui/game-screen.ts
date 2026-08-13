@@ -52,8 +52,8 @@ export class GameScreen {
   private selectedItem: ItemId | null = null;
   /** 盤上で選んでいる配置済みアイテム。 */
   private selectedId: string | null = null;
-  /** ロープ接続の 1 点目。 */
-  private ropeFrom: AnchorInfo | null = null;
+  /** 2 点を繋ぐアイテムの、1 点目。 */
+  private spanFrom: AnchorInfo | null = null;
   private dragging: { id: string; dx: number; dy: number } | null = null;
   private pointer: { x: number; y: number } | null = null;
   private pointerInside = false;
@@ -185,12 +185,12 @@ export class GameScreen {
         if (this.phase === 'run') return;
         this.selectedItem = this.selectedItem === entry.item ? null : entry.item;
         this.selectedId = null;
-        this.ropeFrom = null;
+        this.spanFrom = null;
         this.refreshPalette();
         this.refreshEditBar();
         this.toast(
           this.selectedItem
-            ? entry.item === 'rope'
+            ? ITEMS[entry.item].spans
               ? 'つなぐ2点を順にクリック'
               : ITEMS[entry.item].blurb
             : '',
@@ -249,7 +249,7 @@ export class GameScreen {
     } else if (e.key === 'Escape') {
       this.selectedItem = null;
       this.selectedId = null;
-      this.ropeFrom = null;
+      this.spanFrom = null;
       this.refreshPalette();
       this.refreshEditBar();
     } else if (e.key === 'Backspace' || e.key === 'Delete') {
@@ -267,8 +267,8 @@ export class GameScreen {
     const p = this.renderer.toLogical(e.clientX, e.clientY);
     this.pointer = p;
 
-    if (this.selectedItem === 'rope') {
-      this.handleRopeClick(p);
+    if (this.selectedItem && ITEMS[this.selectedItem].spans) {
+      this.handleSpanClick(this.selectedItem, p);
       return;
     }
     if (this.selectedItem) {
@@ -318,37 +318,38 @@ export class GameScreen {
     }
   };
 
-  private handleRopeClick(p: { x: number; y: number }): void {
+  /** ロープ・吊り橋のように、2 点を選んで架けるアイテムの置き方。 */
+  private handleSpanClick(item: ItemId, p: { x: number; y: number }): void {
     const anchors = anchorCandidates(this.stage, this.placements);
     const near = nearest(anchors, p.x, p.y, 34);
     if (!near) {
       this.toast('つなげる点がない');
       return;
     }
-    if (!this.ropeFrom) {
-      this.ropeFrom = near;
+    if (!this.spanFrom) {
+      this.spanFrom = near;
       this.toast('もう1点を選ぶ');
       return;
     }
-    if (near.id === this.ropeFrom.id) {
-      this.ropeFrom = null;
+    if (near.id === this.spanFrom.id) {
+      this.spanFrom = null;
       return;
     }
-    if (this.remaining('rope') <= 0) {
-      this.toast('ロープが足りない');
-      this.ropeFrom = null;
+    if (this.remaining(item) <= 0) {
+      this.toast(`${ITEMS[item].label}が足りない`);
+      this.spanFrom = null;
       return;
     }
     this.placements.push({
       id: this.newId(),
-      item: 'rope',
+      item,
       x: 0,
       y: 0,
-      from: { target: this.ropeFrom.id },
+      from: { target: this.spanFrom.id },
       to: { target: near.id },
     });
-    this.ropeFrom = null;
-    if (this.remaining('rope') <= 0) this.selectedItem = null;
+    this.spanFrom = null;
+    if (this.remaining(item) <= 0) this.selectedItem = null;
     this.rebuild();
     this.refreshPalette();
   }
@@ -375,7 +376,7 @@ export class GameScreen {
     // 後に置いたものを優先して掴む。
     for (let i = this.placements.length - 1; i >= 0; i--) {
       const p = this.placements[i];
-      if (p.item === 'rope') continue;
+      if (ITEMS[p.item].spans) continue;
       const spec = ITEMS[p.item];
       const r = spec.shape === 'circle' ? spec.radius + 4 : Math.max(spec.hw, spec.hh) + 4;
       if (Math.abs(p.x - x) <= r && Math.abs(p.y - y) <= r) return { id: p.id, x: p.x, y: p.y };
@@ -442,7 +443,7 @@ export class GameScreen {
       this.accumulator = 0;
       this.selectedItem = null;
       this.selectedId = null;
-      this.ropeFrom = null;
+      this.spanFrom = null;
       this.rebuild();
       this.runBtn.textContent = '一時停止';
       this.refreshPalette();
@@ -498,10 +499,10 @@ export class GameScreen {
       phase: this.phase,
       ghost: this.buildGhost(),
       anchors:
-        this.phase === 'place' && this.selectedItem === 'rope'
+        this.phase === 'place' && this.selectedItem && ITEMS[this.selectedItem].spans
           ? anchorCandidates(this.stage, this.placements)
           : [],
-      ropeFrom: this.ropeFrom,
+      spanFrom: this.spanFrom,
       pointer: this.pointer,
       selectedId: this.selectedId,
       clock: this.clock,
@@ -517,7 +518,7 @@ export class GameScreen {
 
   private buildGhost(): Ghost | null {
     if (this.phase !== 'place' || !this.selectedItem || !this.pointer || !this.pointerInside) return null;
-    if (this.selectedItem === 'rope') return null;
+    if (ITEMS[this.selectedItem].spans) return null;
     return {
       item: this.selectedItem,
       x: this.pointer.x,

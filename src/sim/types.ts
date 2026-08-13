@@ -10,6 +10,7 @@ export type Biome = 'amazon' | 'mediterranean' | 'alaska';
 /** 配置可能アイテムの種別。 */
 export type ItemId =
   | 'platform' // 板。足場や斜面になる
+  | 'bridge' // 吊り橋。2 点を接続し、踏み板が連なってたわむ。動物が渡れる
   | 'balloon' // 風船。浮力で上昇し、繋いだ物を吊る
   | 'rope' // ロープ／導火線。2 点を接続し、火が付くと燃え進んで切れる
   | 'bomb' // 爆弾。着火後に爆発する
