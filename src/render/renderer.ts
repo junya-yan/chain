@@ -618,6 +618,44 @@ export class Renderer {
         ctx.stroke();
         break;
       }
+      case 'ladder': {
+        const hw = spec.hw;
+        const hh = spec.hh;
+        // 背景の大木と同じ木の色で描くと紛れて見えなくなる。明るい竹色と
+        // キャラクターと同じ濃い輪郭で、プレイヤーが置いた物だと分かるようにする。
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // 桟。柱より先に描いて奥へ回す。間隔を幅と揃えると一目でハシゴに見える。
+        const rungs = Math.max(3, Math.round(hh / 10));
+        const gap = (hh * 2) / rungs;
+        ctx.beginPath();
+        for (let i = 0; i < rungs; i++) {
+          const ry = -hh + gap * (i + 0.5);
+          ctx.moveTo(-hw, ry);
+          ctx.lineTo(hw, ry);
+        }
+        ctx.strokeStyle = INK;
+        ctx.lineWidth = 6;
+        ctx.stroke();
+        ctx.strokeStyle = '#d8a83f';
+        ctx.lineWidth = 2.8;
+        ctx.stroke();
+
+        // 縦柱。
+        ctx.beginPath();
+        ctx.moveTo(-hw + 2, -hh);
+        ctx.lineTo(-hw + 2, hh);
+        ctx.moveTo(hw - 2, -hh);
+        ctx.lineTo(hw - 2, hh);
+        ctx.strokeStyle = INK;
+        ctx.lineWidth = 7.5;
+        ctx.stroke();
+        ctx.strokeStyle = '#f0c765';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        break;
+      }
       case 'balloon': {
         const r = spec.radius;
         const g = ctx.createRadialGradient(-r * 0.35, -r * 0.45, r * 0.15, 0, 0, r * 1.15);

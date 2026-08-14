@@ -30,6 +30,14 @@ export interface ItemSpec {
   fragile: boolean;
   /** プレイヤーが角度を変えられるか。 */
   rotatable: boolean;
+  /** 姿勢を保つか。true なら倒れも回りもしない。 */
+  fixedRotation: boolean;
+  /**
+   * 動物がつかまって登れるか。
+   * 登るには動物と重なれないといけないので、登れる物は動物とすり抜ける
+   * （Simulation がこの旗を見て衝突マスクを決める）。
+   */
+  climbable: boolean;
   /**
    * 場所ではなく「2 点」を指定して置くか。
    * ロープと吊り橋がこれにあたる。置き方も当たり判定の持ち方も普通の物とは
@@ -56,6 +64,8 @@ const DEFAULTS: ItemSpec = {
   flammable: false,
   fragile: false,
   rotatable: false,
+  fixedRotation: false,
+  climbable: false,
   spans: false,
 };
 
@@ -97,6 +107,33 @@ export const ITEMS: Record<ItemId, ItemSpec> = {
     angularDamping: 2.5,
     attach: true,
     spans: true,
+  },
+  ladder: {
+    ...DEFAULTS,
+    label: 'ハシゴ',
+    blurb: '動物がつかまって登る。重いので、吊るには風船が 2 個いる。',
+    shape: 'box',
+    hw: 9,
+    hh: 80,
+    /*
+     * 丸太を組んだ長物なので重い。この値は「風船 1 個では持ち上がらないが
+     * 2 個なら上がる」ように決めている。上がるか上がらないかは見れば分かる
+     * ので、「風船をもう 1 個足す」がそのまま解法になる。
+     *
+     * 風船 1 個の正味の浮力は mass x (buoyancyScale - 1) x g = 7000。
+     *  - 1 個では: ハシゴだけで 5.2 x g = 7280 あり、ロープを吊るより先に負ける。
+     *  - 2 個なら: 14000 に対し、ロープ 1 本ぶんのノード（12px ごとに 0.1）を
+     *    2 本足しても、300px 近い長さまで余裕がある。
+     * つまり、この重さは吊り方によらず結果が変わらない範囲に収めてある。
+     */
+    mass: 5.2,
+    friction: 0.7,
+    // 吊られたときの揺れを早く収める。止まる高さが読めないと配置できない。
+    linearDamping: 1.2,
+    attach: true,
+    // 倒れたハシゴは登れず、原因も分かりにくい。姿勢は固定する。
+    fixedRotation: true,
+    climbable: true,
   },
   balloon: {
     ...DEFAULTS,
@@ -177,6 +214,7 @@ export const ITEMS: Record<ItemId, ItemSpec> = {
 export const ITEM_ORDER: ItemId[] = [
   'platform',
   'bridge',
+  'ladder',
   'balloon',
   'rope',
   'bomb',

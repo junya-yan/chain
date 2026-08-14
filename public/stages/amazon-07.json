@@ -1,0 +1,73 @@
+{
+  "id": "amazon-07",
+  "name": "ハシゴを二段に吊る",
+  "biome": "amazon",
+  "brief": "王冠は二段上の棚。岩を刻む裂け目に、ハシゴを立てる床はない。空から吊るしかない。",
+  "mission": { "type": "reach_goal", "target": "tiger" },
+  "protect": ["tiger"],
+  "world": {
+    "gravity": 1400,
+    "wind": 0,
+    "bounds": { "w": 800, "h": 600 },
+    "timeLimit": 60
+  },
+  "terrain": [
+    { "material": "rock", "x": 110, "y": 550, "hw": 150, "hh": 120 },
+    { "material": "rock", "x": 388, "y": 465, "hw": 90, "hh": 135 },
+    { "material": "rock", "x": 670, "y": 335, "hw": 154, "hh": 105 }
+  ],
+  "actors": [{ "type": "tiger", "x": 60, "y": 418, "dir": 1 }],
+  "props": [{ "type": "goal", "id": "crown", "x": 700, "y": 200, "hw": 24, "hh": 28 }],
+  "inventory": [
+    { "item": "ladder", "count": 2 },
+    { "item": "balloon", "count": 4 },
+    { "item": "rope", "count": 4 }
+  ],
+  "par": 10,
+  "hints": [
+    "裂け目に床はない。ハシゴは立たないので、上から吊る。",
+    "ハシゴは重い。風船 1 個では持ち上がらない。2 個で吊る。",
+    "風船は天井まで上がる。ハシゴの止まる高さは、風船とハシゴの間隔で決まる。",
+    "下端はトラの肩の高さへ、上端は乗り移りたい棚より少し上へ。"
+  ],
+  "solution": [
+    { "id": "p0", "item": "ladder", "x": 276, "y": 338 },
+    { "id": "p1", "item": "balloon", "x": 254, "y": 26 },
+    { "id": "p2", "item": "balloon", "x": 298, "y": 26 },
+    {
+      "id": "p3",
+      "item": "rope",
+      "x": 0,
+      "y": 0,
+      "from": { "target": "p1" },
+      "to": { "target": "p0" }
+    },
+    {
+      "id": "p4",
+      "item": "rope",
+      "x": 0,
+      "y": 0,
+      "from": { "target": "p2" },
+      "to": { "target": "p0" }
+    },
+    { "id": "p5", "item": "ladder", "x": 494, "y": 238 },
+    { "id": "p6", "item": "balloon", "x": 472, "y": 26 },
+    { "id": "p7", "item": "balloon", "x": 516, "y": 26 },
+    {
+      "id": "p8",
+      "item": "rope",
+      "x": 0,
+      "y": 0,
+      "from": { "target": "p6" },
+      "to": { "target": "p5" }
+    },
+    {
+      "id": "p9",
+      "item": "rope",
+      "x": 0,
+      "y": 0,
+      "from": { "target": "p7" },
+      "to": { "target": "p5" }
+    }
+  ]
+}
