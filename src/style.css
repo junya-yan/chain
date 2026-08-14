@@ -111,6 +111,7 @@ button.link-quiet:hover:not(:disabled) {
 .logo {
   font-size: clamp(2.6rem, 9vw, 5rem);
   letter-spacing: 0.18em;
+  text-indent: 0.18em; /* 最後の字にも字間が付くぶん、左に同じだけ足して中央に見せる */
   font-weight: 900;
   margin: 0;
   color: var(--gold);
@@ -127,7 +128,11 @@ button.link-quiet:hover:not(:disabled) {
 .superscript {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.9em;
+  /* 幅いっぱいを取って中央寄せ。内容幅のままだと狭い端末で
+     画面からはみ出し、左側だけ切れて中央から外れて見える。 */
+  width: 100%;
   margin: 0.5rem 0 0.9rem;
   color: var(--gold-deep);
   font-size: clamp(0.62rem, 2.1vw, 0.8rem);
@@ -140,9 +145,9 @@ button.link-quiet:hover:not(:disabled) {
 .superscript::before,
 .superscript::after {
   content: '';
-  /* 親が align-items:center なので要素は内容幅に縮む。伸びしろが無いため
-     flex-grow では 0px に潰れる。縮まない固定幅で引く。 */
-  flex: 0 0 2.4rem;
+  /* 通常は 2.4rem。文字が入りきらない幅の端末では罫線側だけを縮めて
+     はみ出しを防ぐ（文字は nowrap のまま中央に残す）。 */
+  flex: 0 1 2.4rem;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold-deep), transparent);
 }
