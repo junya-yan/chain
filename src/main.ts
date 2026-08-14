@@ -6,6 +6,7 @@ import './style.css';
 import { loadStages } from './game/stages';
 import { getRecord } from './game/save';
 import { GameScreen } from './ui/game-screen';
+import { createCreditsScreen } from './ui/credits';
 import { loadSprites, type SpriteSet } from './render/sprites';
 import { loadRigs, type RigSet } from './render/rig';
 import type { StageDef } from './sim/types';
@@ -37,9 +38,16 @@ function showTitle(): void {
       動物は勝手に歩き出す。止めることはできない。<br />
       アイテムを置いて、道を作ってやろう。
     </p>
+    <button class="link-quiet" data-act="credits">権利とクレジット</button>
   `;
   el.querySelector('[data-act="start"]')!.addEventListener('click', showSelect);
+  el.querySelector('[data-act="credits"]')!.addEventListener('click', showCredits);
   root.append(el);
+}
+
+function showCredits(): void {
+  clear();
+  root.append(createCreditsScreen({ onBack: showTitle }));
 }
 
 function showSelect(): void {

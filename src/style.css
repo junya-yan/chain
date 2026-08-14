@@ -70,6 +70,29 @@ button.primary {
   font-weight: bold;
 }
 
+/*
+ * 主張しないリンク風ボタン。タイトルの隅に置く「権利とクレジット」用。
+ * ボタンの装飾を全部剥がして、点線の下線だけ残す。
+ */
+button.link-quiet {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0.2em 0.1em;
+  color: var(--ink-dim);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  opacity: 0.65;
+  border-bottom: 1px dotted currentColor;
+  transition: opacity 0.12s ease, color 0.12s ease;
+}
+
+button.link-quiet:hover:not(:disabled) {
+  filter: none;
+  opacity: 1;
+  color: var(--ink);
+}
+
 /* --- タイトル / ステージ選択 ------------------------------------------ */
 
 .screen {
@@ -175,6 +198,86 @@ button.primary {
   right: 0.6rem;
   color: var(--gold);
   font-size: 1.1rem;
+}
+
+/* --- 読み物の画面（権利とクレジット） ---------------------------------- */
+
+/*
+ * 中央寄せのままだと、内容が画面より高いときに上端が切れて
+ * スクロールしても読めなくなる。読み物は上から積む。
+ */
+.screen-doc {
+  justify-content: flex-start;
+  gap: 1.2rem;
+}
+
+.doc {
+  width: min(58ch, 100%);
+  line-height: 1.9;
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+
+.doc h1 {
+  margin: 0 0 0.2rem;
+  font-size: clamp(1.4rem, 5vw, 1.9rem);
+  letter-spacing: 0.12em;
+  color: var(--gold);
+  text-shadow: 0 2px 0 var(--gold-deep), 0 6px 16px rgba(0, 0, 0, 0.6);
+}
+
+.doc h2 {
+  margin: 2rem 0 0.4rem;
+  font-size: 0.98rem;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid rgba(184, 128, 28, 0.45);
+}
+
+.doc p {
+  margin: 0.6rem 0;
+}
+
+.doc .lead {
+  color: var(--ink-dim);
+}
+
+.doc code {
+  font-size: 0.85em;
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--gold);
+}
+
+.doc-list {
+  margin: 0.6rem 0;
+}
+
+.doc-list dt {
+  font-weight: bold;
+  color: var(--gold);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+}
+
+.doc-list dd {
+  margin: 0 0 0.7rem;
+  color: var(--ink-dim);
+}
+
+.doc-foot {
+  margin-top: 2rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(109, 74, 148, 0.6);
+  font-size: 0.8rem;
+  color: var(--ink-dim);
+  word-break: break-all;
+}
+
+.doc a {
+  color: var(--gold);
 }
 
 /* --- ゲーム画面 -------------------------------------------------------- */
